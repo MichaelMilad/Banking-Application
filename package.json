@@ -1,14 +1,16 @@
 {
   "name": "banking_application",
   "version": "1.0.0",
+  "type": "module",
   "description": "A Node.js, Express, TypeScript REST API with Knex, JWT, and Socket.io.",
   "main": "dist/app.js",
   "scripts": {
     "start": "node dist/app.js",
-    "dev": "nodemon --exec ts-node src/app.ts",
+    "dev": "tsx --watch src/app.ts",
     "build": "tsc",
     "test": "jest",
     "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix",
     "format": "prettier --write \"src/**/*.ts\"",
     "knex": "knex",
     "db:migrate": "knex migrate:latest",
@@ -31,6 +33,7 @@
     "socket.io": "^4.8.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
+    "tsx": "^4.20.4",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
@@ -51,11 +54,9 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
     "jest": "^30.0.5",
-    "nodemon": "^3.1.10",
     "prettier": "^3.6.2",
     "supertest": "^7.1.4",
     "ts-jest": "^29.4.1",
-    "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
   }
 }

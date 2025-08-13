@@ -11,9 +11,9 @@ export const knexConfig: Knex.Config = {
     port: Number(process.env.DB_PORT) || 3306,
   },
   migrations: {
-    directory: './src/database/migrations'
+    directory: './src/database/migrations',
   },
   seeds: {
-    directory: './src/database/seeds'
-  }
+    directory: './src/database/seeds',
+  },
 };

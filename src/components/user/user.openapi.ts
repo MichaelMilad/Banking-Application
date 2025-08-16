@@ -20,36 +20,6 @@ export const userApiDoc: IComponentApiDocumentation = {
           },
         },
       },
-      post: {
-        summary: 'Creates a new user',
-        tags: ['Users'],
-        requestBody: {
-          required: true,
-          content: {
-            'application/json': {
-              schema: { $ref: '#/components/schemas/User' },
-            },
-          },
-        },
-        responses: {
-          '201': {
-            description: 'The user was successfully created',
-            content: {
-              'application/json': {
-                schema: { $ref: '#/components/schemas/User' },
-              },
-            },
-          },
-          '500': {
-            description: 'Server error',
-            content: {
-              'application/json': {
-                schema: { $ref: '#/components/schemas/Error' },
-              },
-            },
-          },
-        },
-      },
     },
   },
   components: {

@@ -12,10 +12,11 @@
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "format": "prettier --write \"src/**/*.ts\"",
-    "knex": "knex",
-    "db:migrate": "knex migrate:latest",
-    "db:down": "knex migrate:down",
-    "db:seed": "knex seed:run"
+    "knex": "tsx ./node_modules/knex/bin/cli.js",
+    "knex:migrate": "npm run knex -- migrate:make",
+    "db:migrate": "npm run knex -- migrate:latest",
+    "db:down": "npm run knex -- migrate:down",
+    "db:seed": "npm run knex -- seed:run"
   },
   "author": "",
   "license": "ISC",
@@ -29,11 +30,11 @@
     "jsonwebtoken": "^9.0.2",
     "knex": "^3.1.0",
     "mysql2": "^3.14.3",
+    "nodemailer": "^7.0.5",
     "reflect-metadata": "^0.2.2",
     "socket.io": "^4.8.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
-    "tsx": "^4.20.4",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
@@ -45,6 +46,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/knex": "^0.16.1",
     "@types/node": "^24.2.1",
+    "@types/nodemailer": "^7.0.0",
     "@types/socket.io": "^3.0.2",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
@@ -57,6 +59,7 @@
     "prettier": "^3.6.2",
     "supertest": "^7.1.4",
     "ts-jest": "^29.4.1",
+    "tsx": "^4.20.4",
     "typescript": "^5.9.2"
   }
 }

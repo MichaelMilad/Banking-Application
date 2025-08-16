@@ -37,7 +37,13 @@ export default [
     },
     rules: {
       ...prettierConfig.rules,
-      'prettier/prettier': 'error',
+      'prettier/prettier': [
+        'error',
+        {
+          endOfLine: 'auto',
+        },
+      ],
+      'no-underscore-dangle': ['error', { argsIgnorePattern: '^_' }],
     },
   },
 ];

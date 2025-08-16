@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import type { Knex } from 'knex';
+import knex from 'knex';
 
 export const knexConfig: Knex.Config = {
   client: 'mysql2',
@@ -17,3 +18,7 @@ export const knexConfig: Knex.Config = {
     directory: './src/database/seeds',
   },
 };
+
+const knexInstance = knex(knexConfig);
+
+export default knexInstance;

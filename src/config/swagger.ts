@@ -2,6 +2,7 @@ import { OpenAPIV3 } from 'openapi-types';
 
 import { IComponentApiDocumentation } from '../types/swagger.interfaces';
 import { userApiDoc } from '../components/user/user.openapi';
+import { authApiDoc } from '../components/auth/auth.openapi';
 
 // The base OpenAPI specification, defining global info, servers, and shared schemas.
 const baseApiSpec: OpenAPIV3.Document = {
@@ -46,9 +47,6 @@ export const getFullApiSpec = (): OpenAPIV3.Document => {
 };
 
 export const initializeSwagger = (): void => {
-  // Register paths for the users component.
+  registerSwaggerDocs(authApiDoc);
   registerSwaggerDocs(userApiDoc);
-  // Add other components here as your application grows, e.g.:
-  // registerSwaggerPaths(authPaths);
-  // registerSwaggerPaths(accountPaths);
 };

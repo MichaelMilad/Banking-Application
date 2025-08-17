@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 
 import * as authRepository from './auth.repository';
 import { sendOTPEmail } from '../../utils/mailing';
+import { NotFoundError, BadRequestError } from '../../utils/errors';
 
 const SALT_ROUNDS = 10;
 const EXPIRATION_TIME = 10 * 60 * 1000;
@@ -23,6 +24,8 @@ export const createUserService = async (email: string, username: string, passwor
       password: hashedPassword,
     });
 
+    await authRepository.deleteOTP(userKey);
+
     const otp = generateOTP();
     const otp_hash = await bcrypt.hash(otp, SALT_ROUNDS);
     const expiresAt = new Date(Date.now() + EXPIRATION_TIME);
@@ -38,6 +41,31 @@ export const createUserService = async (email: string, username: string, passwor
     } catch (rollbackError) {
       console.error('Failed to roll back user record:', rollbackError);
     }
+    throw error;
+  }
+};
+
+export const verifyOTP = async (userKey: string, otp: string) => {
+  try {
+    const userOTP = await authRepository.getUserOTP(userKey);
+
+    if (userOTP.length === 0) throw new NotFoundError('OTP Not Found on the system');
+    const otpRecord = userOTP[0];
+
+    const isExpired = new Date() > new Date(otpRecord.expires_at);
+    if (isExpired) {
+      await authRepository.deleteOTP(userKey);
+      throw new BadRequestError('Entered OTP has expired, please request a new one!');
+    }
+
+    const isValidOTP = await bcrypt.compare(otp, otpRecord.otp_hash);
+
+    if (!isValidOTP) throw new BadRequestError('Entered OTP is invalid, please try again!');
+
+    await authRepository.activateUser(userKey);
+    await authRepository.deleteOTP(userKey);
+    return;
+  } catch (error) {
     throw error;
   }
 };

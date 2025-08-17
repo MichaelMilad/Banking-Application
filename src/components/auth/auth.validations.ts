@@ -1,9 +1,16 @@
 import Joi from 'joi';
 
-export const signUpSchema = Joi.object({
-  email: Joi.string().email().required(),
-  username: Joi.string().min(3).max(30).required(),
-  password: Joi.string().min(6).required(),
-})
-  .required()
-  .unknown(false);
+export const signupSchema = Joi.object({
+  body: Joi.object({
+    username: Joi.string().required(),
+    email: Joi.string().email().required(),
+    password: Joi.string().min(8).required(),
+  }).required(),
+});
+
+export const verifyUserSchema = Joi.object({
+  body: Joi.object({
+    userKey: Joi.string().required(),
+    otp: Joi.string().required(),
+  }).required(),
+});

@@ -9,3 +9,11 @@ export interface INewUser {
   email: string;
   password: string;
 }
+
+export interface IRECORD_OTP_CODE {
+  id: number;
+  user_key: string;
+  otp_hash: string;
+  created_at: Date;
+  expires_at: Date;
+}

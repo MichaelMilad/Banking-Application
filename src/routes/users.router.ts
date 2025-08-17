@@ -3,10 +3,8 @@ import * as userController from '../components/user/user.controller';
 
 const router = express.Router();
 
-/**
- * @route GET /users
- * @description Fetches a list of all users.
- */
 router.get('/', userController.getUsers);
+
+router.delete('/:userKey', userController.deleteUser);
 
 export default router;

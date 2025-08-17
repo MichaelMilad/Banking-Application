@@ -7,7 +7,6 @@ export const getUsers = async (
   next: NextFunction
 ) => {
   try {
-    // The controller calls the service layer to perform the core logic
     const users = await userService.getUsersService();
 
     res.status(200).json({
@@ -18,3 +17,19 @@ export const getUsers = async (
     next(error);
   }
 };
+
+export const deleteUser = [
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      console.log('Request Params:: ', req.params)
+      const { userKey } = req.params;
+      await userService.deleteUserService(userKey);
+      res.status(204).json({
+        message: 'User Deleted Successfully!',
+        key: userKey,
+      })
+    } catch (error) {
+      next(error);
+    }
+  }
+]

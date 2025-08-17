@@ -1,11 +1,11 @@
 import * as userRepository from "./user.repository";
 
-interface IUser {
-  username: string;
-  email: string;
-  key: string;
-}
+import { IUser } from "../../types/user.interfaces";
 
 export const getUsersService = async (): Promise<IUser[]> => {
   return await userRepository.getUsers();
 };
+
+export const deleteUserService = async (userKey: string): Promise<void> => {
+  return await userRepository.deleteUser(userKey);
+}

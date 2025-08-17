@@ -1,40 +1,79 @@
-import { IComponentApiDocumentation } from "../../types/swagger.interfaces";
+import { IComponentApiDocumentation } from '../../types/swagger.interfaces';
 
 export const authApiDoc: IComponentApiDocumentation = {
   paths: {
-    "/auth/signup": {
+    '/auth/signup': {
       post: {
-        summary: "Creates a new user",
-        tags: ["Auth"],
+        summary: 'Creates a new user',
+        tags: ['Auth'],
         requestBody: {
           required: true,
           content: {
-            "application/json": {
-              schema: { $ref: "#/components/schemas/SignupRequest" },
+            'application/json': {
+              schema: { $ref: '#/components/schemas/SignupRequest' },
             },
           },
         },
         responses: {
-          "201": {
-            description: "The user was successfully created",
+          '201': {
+            description: 'The user was successfully created',
             content: {
-              "application/json": {
+              'application/json': {
                 schema: {
-                  type: "object",
+                  type: 'object',
                   properties: {
                     key: {
-                      type: "string",
+                      type: 'string',
                     },
                   },
                 },
               },
             },
           },
-          "500": {
-            description: "Server error",
+          '500': {
+            description: 'Server error',
             content: {
-              "application/json": {
-                schema: { $ref: "#/components/schemas/Error" },
+              'application/json': {
+                schema: { $ref: '#/components/schemas/Error' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/auth/verify': {
+      post: {
+        summary: 'Verifies User via OTP',
+        tags: ['Auth'],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/OTPVerificationRequest' },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'The user was successfully created',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    message: {
+                      type: 'string',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          '500': {
+            description: 'Server error',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/Error' },
               },
             },
           },
@@ -45,37 +84,37 @@ export const authApiDoc: IComponentApiDocumentation = {
   components: {
     schemas: {
       SignupRequest: {
-        type: "object",
+        type: 'object',
         properties: {
           email: {
-            type: "string",
-            description: "The Email of the user.",
-            format: "email",
+            type: 'string',
+            description: 'The Email of the user.',
+            format: 'email',
           },
           username: {
-            type: "string",
-            description: "The name of the user.",
+            type: 'string',
+            description: 'The name of the user.',
           },
           password: {
-            type: "string",
+            type: 'string',
             description: "The user's email address.",
           },
         },
-        required: ["email", "password"],
+        required: ['email', 'password'],
       },
       OTPVerificationRequest: {
-        type: "object",
+        type: 'object',
         properties: {
-          email: { type: "string", format: "email" },
-          otp: { type: "string", description: "The one-time password" },
+          userKey: { type: 'string', format: 'uuid' },
+          otp: { type: 'string', description: 'The one-time password' },
         },
-        required: ["email", "otp"],
+        required: ['userKey', 'otp'],
       },
       Error: {
-        type: "object",
+        type: 'object',
         properties: {
-          message: { type: "string" },
-          code: { type: "number" },
+          message: { type: 'string' },
+          code: { type: 'number' },
         },
       },
     },

@@ -1,9 +1,17 @@
 import { Request, Response, NextFunction } from 'express';
 import * as authService from './auth.service';
 
-export const signUp = async (req: Request, res: Response, next: NextFunction) => {
+export const signUp = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
-    const userKey = await authService.createUserService(req.body.email, req.body.username, req.body.password);
+    const userKey = await authService.createUserService(
+      req.body.email,
+      req.body.username,
+      req.body.password,
+    );
 
     res.status(201).json({
       message: 'User created successfully',
@@ -14,7 +22,11 @@ export const signUp = async (req: Request, res: Response, next: NextFunction) =>
   }
 };
 
-export const verifyUser = async (req: Request, res: Response, next: NextFunction) => {
+export const verifyUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const { userKey, otp } = req.body;
 
@@ -22,6 +34,29 @@ export const verifyUser = async (req: Request, res: Response, next: NextFunction
 
     res.status(200).json({
       message: 'User Verified',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const login = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { username, email, password } = req.body;
+
+    const { accessToken, refreshToken } = await authService.login(
+      password,
+      username || email,
+    );
+
+    res.status(200).json({
+      message: 'User Verified',
+      accessToken: accessToken,
+      refreshToken: refreshToken,
     });
   } catch (error) {
     next(error);

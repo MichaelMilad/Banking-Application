@@ -80,6 +80,51 @@ export const authApiDoc: IComponentApiDocumentation = {
         },
       },
     },
+    '/auth/login': {
+      post: {
+        summary: 'User Login',
+        tags: ['Auth'],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/LoginRequest' },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'The user was successfully created',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    message: {
+                      type: 'string',
+                    },
+                    accessToken: {
+                      type: 'string',
+                    },
+                    refreshToken: {
+                      type: 'string',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          '500': {
+            description: 'Server error',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/Error' },
+              },
+            },
+          },
+        },
+      },
+    },
   },
   components: {
     schemas: {
@@ -109,6 +154,36 @@ export const authApiDoc: IComponentApiDocumentation = {
           otp: { type: 'string', description: 'The one-time password' },
         },
         required: ['userKey', 'otp'],
+      },
+      LoginRequest: {
+        type: 'object',
+        required: ['password'],
+        properties: {
+          password: {
+            type: 'string',
+            description: 'User Password',
+          },
+        },
+        oneOf: [
+          {
+            properties: {
+              email: {
+                type: 'string',
+                description: 'User Email',
+              },
+            },
+            required: ['email'],
+          },
+          {
+            properties: {
+              username: {
+                type: 'string',
+                description: 'Username',
+              },
+            },
+            required: ['username'],
+          },
+        ],
       },
       Error: {
         type: 'object',

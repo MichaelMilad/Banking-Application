@@ -1,6 +1,6 @@
 import express, { Request, Response, NextFunction } from 'express';
-import usersRouter from './users.router';
-import authRouter from './auth.router';
+import usersRouter from './components/user/users.router';
+import authRouter from './components/auth/auth.router';
 
 const router = express.Router();
 

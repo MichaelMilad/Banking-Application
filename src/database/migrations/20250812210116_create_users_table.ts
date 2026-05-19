@@ -5,8 +5,9 @@ export async function up(knex: Knex): Promise<void> {
     table.increments('id').primary();
     table.uuid('key').notNullable().index().unique();
     table.string('email', 255).notNullable().unique();
-    table.string('username', 255).notNullable()
+    table.string('username', 255).notNullable();
     table.string('password', 255).notNullable();
+    table.enu('role', ['user', 'admin']).notNullable().defaultTo('user');
     table.boolean('is_active').notNullable().defaultTo(false);
     table.timestamp('deleted_at').nullable();
 

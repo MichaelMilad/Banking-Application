@@ -6,6 +6,7 @@ dist/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+*.log
 
 # Environment
 .env
@@ -14,6 +15,19 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
-# Database
-src/database/migrations/
-src/database/seeds/
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+coverage/
+
+# Build
+build/

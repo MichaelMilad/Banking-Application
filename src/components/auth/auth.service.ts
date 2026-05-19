@@ -6,7 +6,8 @@ import * as authRepository from './auth.repository';
 import * as userRepository from '../user/user.repository';
 import { sendOTPEmail } from '../../utils/mailing';
 import { NotFoundError, BadRequestError } from '../../utils/errors';
-import { IUser } from '../../types/user.interfaces';
+import { TokenType } from './auth.interfaces';
+import { IUser, IUserCreate, IUserPublic } from '../user/user.interfaces';
 
 const SALT_ROUNDS = 10;
 const EXPIRATION_TIME = 10 * 60 * 1000;
@@ -20,16 +21,28 @@ function generateOTP() {
 function generateAccessToken(user: IUser): string {
   const payload = {
     sub: user.key,
-    email: user.email,
-    key: user.key,
-    username: user.username,
+    role: user.role,
+    type: TokenType.ACCESS,
   };
   return jwt.sign(payload, JWT_SECRET, { expiresIn: '15m' });
+}
+
+function toPublicUser(user: IUser): IUserPublic {
+  return {
+    key: user.key,
+    username: user.username,
+    email: user.email,
+    role: user.role,
+    is_active: user.is_active,
+    created_at: user.created_at,
+    updated_at: user.updated_at,
+  };
 }
 
 function generateRefreshToken(userKey: string): string {
   const payload = {
     sub: userKey,
+    type: TokenType.REFRESH,
   };
   return jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn: '7d' });
 }
@@ -43,12 +56,16 @@ export const createUserService = async (
   const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
   try {
-    await userRepository.createUser({
+    const newUser: IUserCreate = {
       key: userKey,
       username,
       email,
       password: hashedPassword,
-    });
+      // is_active defaults to false in DB
+      // timestamps are automatically set by DB
+    };
+    
+    await userRepository.createUser(newUser);
 
     await authRepository.deleteOTP(userKey);
 
@@ -74,54 +91,57 @@ export const createUserService = async (
 };
 
 export const verifyOTP = async (userKey: string, otp: string) => {
-  try {
-    const userOTP = await authRepository.getUserOTP(userKey);
+  const userOTP = await authRepository.getUserOTP(userKey);
 
-    if (userOTP.length === 0)
-      throw new NotFoundError('OTP Not Found on the system');
-    const otpRecord = userOTP[0];
+  if (userOTP.length === 0)
+    throw new NotFoundError('OTP Not Found on the system');
+  const otpRecord = userOTP[0];
 
-    const isExpired = new Date() > new Date(otpRecord.expires_at);
-    if (isExpired) {
-      await authRepository.deleteOTP(userKey);
-      throw new BadRequestError(
-        'Entered OTP has expired, please request a new one!',
-      );
-    }
-
-    const isValidOTP = await bcrypt.compare(otp, otpRecord.otp_hash);
-
-    if (!isValidOTP)
-      throw new BadRequestError('Entered OTP is invalid, please try again!');
-
-    await userRepository.activateUser(userKey);
+  const isExpired = new Date() > new Date(otpRecord.expires_at);
+  if (isExpired) {
     await authRepository.deleteOTP(userKey);
-    return;
-  } catch (error) {
-    throw error;
+    throw new BadRequestError(
+      'Entered OTP has expired, please request a new one!',
+    );
   }
+
+  const isValidOTP = await bcrypt.compare(otp, otpRecord.otp_hash);
+
+  if (!isValidOTP)
+    throw new BadRequestError('Entered OTP is invalid, please try again!');
+
+  await userRepository.activateUser(userKey);
+  await authRepository.deleteOTP(userKey);
 };
+
+export interface ILoginResult {
+  accessToken: string;
+  refreshToken: string;
+  user: IUserPublic;
+}
 
 export const login = async (
   password: string,
   identifier: string,
-): Promise<{ accessToken: string; refreshToken: string }> => {
-  try {
-    const user = await userRepository.getUserForLogin(identifier);
-    console.log(user);
+): Promise<ILoginResult> => {
+  const user = await userRepository.getUserForLogin(identifier);
 
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      throw new BadRequestError('Invalid credentials.');
-    }
-
-    const accessToken = generateAccessToken(user);
-    const refreshToken = generateRefreshToken(user.key);
-
-    return {
-      accessToken,
-      refreshToken,
-    };
-  } catch (error: unknown) {
-    throw error;
+  if (!user || !(await bcrypt.compare(password, user.password))) {
+    throw new BadRequestError('Invalid credentials.');
   }
+
+  const accessToken = generateAccessToken(user);
+  const refreshToken = generateRefreshToken(user.key);
+
+  return {
+    accessToken,
+    refreshToken,
+    user: toPublicUser(user),
+  };
+};
+
+export const getMe = async (userKey: string): Promise<IUserPublic> => {
+  const user = await userRepository.getUserByKey(userKey);
+  if (!user) throw new NotFoundError('User not found');
+  return user;
 };

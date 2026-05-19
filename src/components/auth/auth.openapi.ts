@@ -6,6 +6,7 @@ export const authApiDoc: IComponentApiDocumentation = {
       post: {
         summary: 'Creates a new user',
         tags: ['Auth'],
+        security: [],
         requestBody: {
           required: true,
           content: {
@@ -45,6 +46,7 @@ export const authApiDoc: IComponentApiDocumentation = {
       post: {
         summary: 'Verifies User via OTP',
         tags: ['Auth'],
+        security: [],
         requestBody: {
           required: true,
           content: {
@@ -83,7 +85,10 @@ export const authApiDoc: IComponentApiDocumentation = {
     '/auth/login': {
       post: {
         summary: 'User Login',
+        description:
+          'Returns the access token and user profile in the body. The refresh token is set as an httpOnly cookie (sameSite=strict, path=/auth).',
         tags: ['Auth'],
+        security: [],
         requestBody: {
           required: true,
           content: {
@@ -94,28 +99,61 @@ export const authApiDoc: IComponentApiDocumentation = {
         },
         responses: {
           '200': {
-            description: 'The user was successfully created',
+            description: 'Login successful',
+            headers: {
+              'Set-Cookie': {
+                schema: {
+                  type: 'string',
+                  example:
+                    'refreshToken=<jwt>; HttpOnly; SameSite=Strict; Path=/auth; Max-Age=604800',
+                },
+                description: 'httpOnly refresh token cookie',
+              },
+            },
             content: {
               'application/json': {
                 schema: {
                   type: 'object',
                   properties: {
-                    message: {
-                      type: 'string',
-                    },
-                    accessToken: {
-                      type: 'string',
-                    },
-                    refreshToken: {
-                      type: 'string',
-                    },
+                    message: { type: 'string' },
+                    accessToken: { type: 'string' },
+                    user: { $ref: '#/components/schemas/UserPublic' },
                   },
                 },
               },
             },
           },
-          '500': {
-            description: 'Server error',
+          '400': {
+            description: 'Invalid credentials',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/Error' },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/auth/me': {
+      get: {
+        summary: 'Get current authenticated user',
+        tags: ['Auth'],
+        responses: {
+          '200': {
+            description: 'The authenticated user',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    data: { $ref: '#/components/schemas/UserPublic' },
+                  },
+                },
+              },
+            },
+          },
+          '401': {
+            description: 'Missing or invalid token',
             content: {
               'application/json': {
                 schema: { $ref: '#/components/schemas/Error' },
@@ -184,6 +222,18 @@ export const authApiDoc: IComponentApiDocumentation = {
             required: ['username'],
           },
         ],
+      },
+      UserPublic: {
+        type: 'object',
+        properties: {
+          key: { type: 'string', format: 'uuid' },
+          username: { type: 'string' },
+          email: { type: 'string', format: 'email' },
+          role: { type: 'string', enum: ['user', 'admin'] },
+          is_active: { type: 'boolean' },
+          created_at: { type: 'string', format: 'date-time' },
+          updated_at: { type: 'string', format: 'date-time' },
+        },
       },
       Error: {
         type: 'object',

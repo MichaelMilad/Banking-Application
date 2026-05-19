@@ -3,6 +3,7 @@ import { OpenAPIV3 } from 'openapi-types';
 import { IComponentApiDocumentation } from '../types/swagger.interfaces';
 import { userApiDoc } from '../components/user/user.openapi';
 import { authApiDoc } from '../components/auth/auth.openapi';
+import { accountApiDoc } from '../components/account/account.openapi';
 
 // The base OpenAPI specification, defining global info, servers, and shared schemas.
 const baseApiSpec: OpenAPIV3.Document = {
@@ -14,7 +15,17 @@ const baseApiSpec: OpenAPIV3.Document = {
   },
   servers: [{ url: 'http://localhost:3000' }],
   paths: {},
-  components: {},
+  components: {
+    securitySchemes: {
+      bearerAuth: {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+      },
+    },
+  },
+  // Applied to every endpoint by default. Public endpoints opt out with `security: []`.
+  security: [{ bearerAuth: [] }],
 };
 
 // The registry where we store documentation.
@@ -49,4 +60,5 @@ export const getFullApiSpec = (): OpenAPIV3.Document => {
 export const initializeSwagger = (): void => {
   registerSwaggerDocs(authApiDoc);
   registerSwaggerDocs(userApiDoc);
+  registerSwaggerDocs(accountApiDoc);
 };

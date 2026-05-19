@@ -1,20 +1,30 @@
 import 'dotenv/config';
 import express, { Express, Request, Response, NextFunction } from 'express';
 import http from 'http';
-import knex from 'knex';
+import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
 
 import { getFullApiSpec, initializeSwagger } from './config/swagger';
-import { knexConfig } from './config/knex';
+import db from './config/knex';
 import router from './router';
 import { errorHandler } from './middlewares/error-handler';
+import { shortRateLimiter, longRateLimiter } from './middlewares/rate-limiter';
+import main from './utils/message-broker';
+main();
 
 const app: Express = express();
-const db = knex(knexConfig);
 initializeSwagger();
 
 // Middleware Setup
+app.use(
+  cors({
+    origin: true, // reflect request origin (any origin allowed)
+    credentials: true, // send/receive cookies cross-origin
+  }),
+);
 app.use(express.json());
+// app.use(shortRateLimiter);
+// app.use(longRateLimiter);
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);

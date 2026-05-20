@@ -94,8 +94,8 @@ export interface ITransaction extends ITransactionBase {
  * Used for API responses
  */
 export interface ITransactionPublic extends ITransactionBase {
-  description?: string;
-  related_transaction_key?: string;
+  description: string | null;
+  related_transaction_key: string | null;
   created_at: Date;
 }
 

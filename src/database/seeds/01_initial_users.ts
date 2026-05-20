@@ -28,5 +28,15 @@ export async function seed(knex: Knex): Promise<void> {
       created_at: new Date(),
       updated_at: new Date(),
     },
+    {
+      key: uuidv4(),
+      username: 'testuser2',
+      email: 'test2@example.com',
+      password: hashedPassword,
+      role: 'user',
+      is_active: true,
+      created_at: new Date(),
+      updated_at: new Date(),
+    },
   ]);
 }

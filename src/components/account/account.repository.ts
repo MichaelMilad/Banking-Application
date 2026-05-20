@@ -7,14 +7,39 @@ import {
   ITransactionPublic,
 } from './account.interfaces';
 
+// MySQL DECIMAL columns come back as strings via mysql2 to preserve precision.
+// Normalize numeric fields at the repository boundary so the rest of the app
+// sees real numbers matching the interface types.
+const toAccountPublic = (row: any): IAccountPublic => ({
+  key: row.key,
+  account_number: row.account_number,
+  account_type: row.account_type,
+  balance: Number(row.balance),
+  is_active: Boolean(row.is_active),
+  created_at: row.created_at,
+  updated_at: row.updated_at,
+});
+
+const toTransactionPublic = (row: any): ITransactionPublic => ({
+  key: row.key,
+  type: row.type,
+  amount: Number(row.amount),
+  balance_after: Number(row.balance_after),
+  description: row.description ?? null,
+  related_transaction_key: row.related_transaction_key ?? null,
+  status: row.status,
+  created_at: row.created_at,
+});
+
 // ============================================================================
 // ACCOUNT QUERIES
 // ============================================================================
 
 export const getAllAccounts = async (): Promise<IAccountPublic[]> => {
-  return await knex('accounts')
+  const rows = await knex('accounts')
     .where({ is_active: true, deleted_at: null })
     .select('key', 'account_number', 'account_type', 'balance', 'is_active', 'created_at', 'updated_at');
+  return rows.map(toAccountPublic);
 }
 
 export const createAccount = async (account: Omit<IAccount, 'created_at' | 'updated_at'>): Promise<void> => {
@@ -46,14 +71,14 @@ export const getAccountsByUserKey = async (
   const offset = (page - 1) * limit;
   
   // Get paginated data
-  const data = await knex('accounts')
+  const rows = await knex('accounts')
     .where({ user_id: user.id, is_active: true, deleted_at: null })
     .select('key', 'account_number', 'account_type', 'balance', 'is_active', 'created_at', 'updated_at')
     .orderBy('created_at', 'desc')
     .limit(limit)
     .offset(offset);
-  
-  return { data, total };
+
+  return { data: rows.map(toAccountPublic), total };
 };
 
 export const updateAccountBalance = async (
@@ -97,13 +122,13 @@ export const createTransaction = async (
   try {
     const transactionData: any = {
       ...transaction,
-      account_id: trx.raw('(SELECT id FROM accounts WHERE key = ?)', [accountKey]),
+      account_id: trx.raw('(SELECT id FROM accounts WHERE `key` = ?)', [accountKey]),
     };
     
     // Handle related account if present
     if (relatedAccountKey) {
       transactionData.related_account_id = trx.raw(
-        '(SELECT id FROM accounts WHERE key = ?)',
+        '(SELECT id FROM accounts WHERE `key` = ?)',
         [relatedAccountKey]
       );
     }
@@ -126,7 +151,7 @@ export const getTransactionsByAccountKey = async (
   try {
     // Get total count using subquery
     const countResult = await knex('transactions')
-      .whereRaw('account_id = (SELECT id FROM accounts WHERE key = ?)', [accountKey])
+      .whereRaw('account_id = (SELECT id FROM accounts WHERE `key` = ?)', [accountKey])
       .count('* as count')
       .first();
     
@@ -147,14 +172,14 @@ export const getTransactionsByAccountKey = async (
     const offset = (page - 1) * limit;
     
     // Get paginated data (excluding internal IDs)
-    const data = await knex('transactions')
-      .whereRaw('account_id = (SELECT id FROM accounts WHERE key = ?)', [accountKey])
+    const rows = await knex('transactions')
+      .whereRaw('account_id = (SELECT id FROM accounts WHERE `key` = ?)', [accountKey])
       .select('key', 'type', 'amount', 'balance_after', 'description', 'related_transaction_key', 'status', 'created_at')
       .orderBy('created_at', 'desc')
       .limit(limit)
       .offset(offset);
-    
-    return { data, total };
+
+    return { data: rows.map(toTransactionPublic), total };
   } catch (error: any) {
     if (error instanceof NotFoundError) {
       throw error;
@@ -173,7 +198,7 @@ export const getTransactionsByDateRange = async (
   try {
     // Get total count using subquery
     const countResult = await knex('transactions')
-      .whereRaw('account_id = (SELECT id FROM accounts WHERE key = ?)', [accountKey])
+      .whereRaw('account_id = (SELECT id FROM accounts WHERE `key` = ?)', [accountKey])
       .whereBetween('created_at', [startDate, endDate])
       .count('* as count')
       .first();
@@ -195,15 +220,15 @@ export const getTransactionsByDateRange = async (
     const offset = (page - 1) * limit;
     
     // Get paginated data (excluding internal IDs)
-    const data = await knex('transactions')
-      .whereRaw('account_id = (SELECT id FROM accounts WHERE key = ?)', [accountKey])
+    const rows = await knex('transactions')
+      .whereRaw('account_id = (SELECT id FROM accounts WHERE `key` = ?)', [accountKey])
       .whereBetween('created_at', [startDate, endDate])
       .select('key', 'type', 'amount', 'balance_after', 'description', 'related_transaction_key', 'status', 'created_at')
       .orderBy('created_at', 'desc')
       .limit(limit)
       .offset(offset);
-    
-    return { data, total };
+
+    return { data: rows.map(toTransactionPublic), total };
   } catch (error: any) {
     if (error instanceof NotFoundError) {
       throw error;
